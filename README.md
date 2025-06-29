@@ -55,6 +55,7 @@ citizen_ai/
     OPENROUTER_API_KEY = "sk-or-v1-xxxxxxxxxxxxxxxxxxxx"
     FLASK_SECRET_KEY = "your-secret-key"
     To generate a Flask secret key:
+   
      " import secrets
       print(secrets.token_hex(16)) "
 AI Assistant (Claude 3.5 Sonnet via OpenRouter)
