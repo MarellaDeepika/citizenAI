@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CitizenAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h2> Citizen Insights Dashboard</h2>
+                    <p class="mb-0 text-muted">Overview of trending concerns in your community</p>
+                </div>
+                <div class="card-body">
+                    <!-- Trending Concerns -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h4 class="mb-4"> Trending Concerns</h4>
+                            {% for concern in trending_concerns %}
+                            <div class="card mb-3 border-left-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title text-primary">{{ concern.title }}</h5>
+                                            <p class="text-muted mb-2">
+                                                 <strong>Origin:</strong> {{ concern.origin }}
+                                            </p>
+                                            <p class="card-text">{{ concern.ai_response[:150] }}...</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-info mb-2">{{ concern.reports }} Reports</span><br>
+                                            {% if concern.trend == 'rising' %}
+                                                <span class="badge bg-danger">📈 Rising</span>
+                                            {% elif concern.trend == 'stable' %}
+                                                <span class="badge bg-warning">➡️ Stable</span>
+                                            {% else %}
+                                                <span class="badge bg-success">📉 Decreasing</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('trending') }}" class="btn btn-primary">View Detailed Analysis</a>
+                    <a href="{{ url_for('concerns') }}" class="btn btn-outline-primary">Report New Concern</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #667eea !important;
+}
+</style>
+{% endblock %}

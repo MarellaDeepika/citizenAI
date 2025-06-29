@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+
+{% block title %}Report Concerns - CitizenAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Report New Concern -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Report New Concern</h3>
+                    <p class="mb-0 text-muted">Help improve your community by reporting issues</p>
+                </div>
+                <div class="card-body">
+                    <form id="concernForm">
+                        <div class="mb-3">
+                            <label for="concernTitle" class="form-label"> Concern Title</label>
+                            <input type="text" class="form-control" id="concernTitle" placeholder="Brief description of the issue" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="reporterEmail" class="form-label">Your Email</label>
+                                <input type="email" class="form-control" id="reporterEmail" placeholder="your.email@example.com" value="{{ session.user_id }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="concernLocation" class="form-label"> Location</label>
+                                <input type="text" class="form-control" id="concernLocation" placeholder="Street address or area" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="concernCategory" class="form-label"> Category</label>
+                            <select class="form-select" id="concernCategory" required>
+                                <option value="">Select category</option>
+                                <option value="infrastructure"> Infrastructure</option>
+                                <option value="transportation"> Transportation</option>
+                                <option value="public-safety"> Public Safety</option>
+                                <option value="environment"> Environment</option>
+                                <option value="utilities"> Utilities</option>
+                                <option value="parks-recreation"> Parks & Recreation</option>
+                                <option value="other"> Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="concernDescription" class="form-label"Detailed Description</label>
+                            <textarea class="form-control" id="concernDescription" rows="4" placeholder="Describe the issue in detail, including when it occurs and how it affects the community..." required></textarea>
+                            <div class="form-text">
+                                <small id="sentimentIndicator" class="text-muted">Analyzing concern priority...</small>
+                            </div>
+                        </div>
+                        
+                        <div id="priorityBadge" class="mb-3" style="display: none;">
+                            <span class="badge" id="priorityLevel">Priority will be determined</span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">Submit Concern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Existing Concerns with Voting -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3> Community Concerns</h3>
+                    <p class="mb-0 text-muted">Vote and comment on community issues</p>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    <!-- New Concerns List (for submitted concerns) -->
+                    <div id="newConcernsList"></div>
+                    
+                    {% for concern in concerns %}
+                    <div class="border rounded p-3 mb-3 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1 text-primary">{{ concern.title }}</h6>
+                                <small class="text-muted"> {{ concern.location if concern.location else 'Location not specified' }}</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary">{{ concern.category }}</span>
+                                {% if concern.priority %}
+                                    {% if concern.priority == 'high' %}
+                                        <span class="badge bg-danger">High Priority</span>
+                                    {% elif concern.priority == 'medium' %}
+                                        <span class="badge bg-warning">Medium Priority</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Low Priority</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3">{{ concern.description }}</p>
+                        
+                        <!-- Voting Section with larger, more visible buttons -->
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success btn-sm px-3" onclick="vote({{ concern.id }}, 'up')" id="upvote-{{ concern.id }}">
+                                    ↑ <span class="fw-bold">{{ concern.upvotes }}</span>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm px-3" onclick="vote({{ concern.id }}, 'down')" id="downvote-{{ concern.id }}">
+                                    ↓ <span class="fw-bold">{{ concern.downvotes }}</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="toggleComments({{ concern.id }})">
+                                Comments <span class="fw-bold">{{ concern.comments|length }}</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Comments Section -->
+                        <div id="comments-{{ concern.id }}" class="comments-section border-top pt-3" style="display: none;">
+                            <h6 class="text-primary mb-3">Comments & Discussion</h6>
+                            <div id="comments-list-{{ concern.id }}">
+                                {% for comment in concern.comments %}
+                                <div class="mb-3 p-2 bg-light rounded">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <strong class="text-primary">{{ comment.user }}</strong>
+                                        <small class="text-muted">Just now</small>
+                                    </div>
+                                    <p class="mb-0 mt-1">{{ comment.text }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Add Comment -->
+                            <div class="mt-3">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" 
+                                           id="comment-input-{{ concern.id }}" 
+                                           placeholder="Share your thoughts or suggestions...">
+                                    <button class="btn btn-primary" 
+                                            onclick="addComment({{ concern.id }})"> Post Comment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if concerns|length == 0 %}
+                    <div class="text-center py-5">
+                        <h5 class="text-muted">No concerns reported yet</h5>
+                        <p class="text-muted">Be the first to report a community issue!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Emotion keywords for sentiment analysis
+const emotionKeywords = {
+    high: ['urgent', 'emergency', 'dangerous', 'critical', 'serious', 'immediate', 'unsafe', 'crisis', 'severe', 'terrible', 'awful', 'horrible', 'disaster', 'broken', 'failed', 'flooding', 'accident', 'injury', 'damage', 'threat'],
+    medium: ['problem', 'issue', 'concern', 'needs', 'should', 'fix', 'repair', 'improve', 'maintenance', 'delay', 'slow', 'poor', 'difficult', 'inconvenient', 'frustrating', 'annoying'],
+    low: ['minor', 'small', 'suggestion', 'could', 'might', 'maybe', 'consider', 'enhancement', 'nice', 'would', 'prefer', 'request', 'recommend', 'cosmetic', 'aesthetic']
+};
+
+// Real-time sentiment analysis
+function analyzeSentiment(text) {
+    const words = text.toLowerCase().split(/\s+/);
+    let highScore = 0, mediumScore = 0, lowScore = 0;
+    
+    words.forEach(word => {
+        if (emotionKeywords.high.some(keyword => word.includes(keyword))) highScore++;
+        if (emotionKeywords.medium.some(keyword => word.includes(keyword))) mediumScore++;
+        if (emotionKeywords.low.some(keyword => word.includes(keyword))) lowScore++;
+    });
+    
+    if (highScore > 0 || (mediumScore > 2)) return 'high';
+    if (mediumScore > 0 || (lowScore > 3)) return 'medium';
+    return 'low';
+}
+
+// Update priority badge
+function updatePriorityBadge(priority) {
+    const badge = document.getElementById('priorityLevel');
+    const container = document.getElementById('priorityBadge');
+    
+    container.style.display = 'block';
+    
+    switch(priority) {
+        case 'high':
+            badge.className = 'badge bg-danger';
+            badge.textContent = '🔴 High Priority - Urgent attention required';
+            break;
+        case 'medium':
+            badge.className = 'badge bg-warning';
+            badge.textContent = '🟡 Medium Priority - Needs attention';
+            break;
+        case 'low':
+            badge.className = 'badge bg-success';
+            badge.textContent = '🟢 Low Priority - General improvement';
+            break;
+    }
+}
+
+// Real-time text analysis
+document.getElementById('concernDescription').addEventListener('input', function() {
+    const text = this.value;
+    const indicator = document.getElementById('sentimentIndicator');
+    
+    if (text.length > 10) {
+        const priority = analyzeSentiment(text);
+        indicator.textContent = `Priority level detected: ${priority.toUpperCase()}`;
+        updatePriorityBadge(priority);
+    } else {
+        indicator.textContent = 'Keep typing to analyze priority...';
+        document.getElementById('priorityBadge').style.display = 'none';
+    }
+});
+
+// Submit new concern with backend integration
+document.getElementById('concernForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById('concernTitle').value;
+    const email = document.getElementById('reporterEmail').value;
+    const location = document.getElementById('concernLocation').value;
+    const category = document.getElementById('concernCategory').value;
+    const description = document.getElementById('concernDescription').value;
+    
+    if (!title || !email || !location || !category || !description) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    const priority = analyzeSentiment(description);
+    
+    // Send to backend
+    fetch('/submit_concern', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            title: title,
+            email: email,
+            location: location,
+            category: category,
+            description: description,
+            priority: priority
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Create new concern element
+            const newConcern = createConcernElement(data.concern);
+            
+            // Add to the list
+            const concernsList = document.getElementById('newConcernsList');
+            concernsList.innerHTML = newConcern + concernsList.innerHTML;
+            
+            alert('Concern submitted successfully! Priority level: ' + priority.toUpperCase());
+            this.reset();
+            document.getElementById('priorityBadge').style.display = 'none';
+            document.getElementById('sentimentIndicator').textContent = 'Analyzing concern priority...';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting concern:', error);
+        alert('Failed to submit concern. Please try again.');
+    });
+});
+
+// Create concern HTML element
+function createConcernElement(concern) {
+    let priorityBadge = '';
+    if (concern.priority === 'high') {
+        priorityBadge = '<span class="badge bg-danger">High Priority</span>';
+    } else if (concern.priority === 'medium') {
+        priorityBadge = '<span class="badge bg-warning">Medium Priority</span>';
+    } else {
+        priorityBadge = '<span class="badge bg-success">Low Priority</span>';
+    }
+    
+    return `
+        <div class="border rounded p-3 mb-3 shadow-sm bg-light">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h6 class="mb-1 text-primary">${concern.title}</h6>
+                    <small class="text-muted">${concern.location}</small>
+                    <small class="text-success d-block">Just submitted</small>
+                </div>
+                <div>
+                    <span class="badge bg-secondary">${concern.category}</span>
+                    ${priorityBadge}
+                </div>
+            </div>
+            <p class="text-muted small mb-3">${concern.description}</p>
+            
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success btn-sm px-3" onclick="vote(${concern.id}, 'up')" id="upvote-${concern.id}">
+                        ↑ <span class="fw-bold">${concern.upvotes}</span>
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm px-3" onclick="vote(${concern.id}, 'down')" id="downvote-${concern.id}">
+                        ↓ <span class="fw-bold">${concern.downvotes}</span>
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="toggleComments(${concern.id})">
+                    Comments <span class="fw-bold">${concern.comments.length}</span>
+                </button>
+            </div>
+            
+            <div id="comments-${concern.id}" class="comments-section border-top pt-3" style="display: none;">
+                <h6 class="text-primary mb-3">Comments & Discussion</h6>
+                <div id="comments-list-${concern.id}">
+                    <div class="text-center py-3 text-muted">
+                        <p>Be the first to comment on this concern!</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" 
+                               id="comment-input-${concern.id}" 
+                               placeholder="Share your thoughts or suggestions...">
+                        <button class="btn btn-primary" 
+                                onclick="addComment(${concern.id})"> Post Comment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Toggle comments visibility
+function toggleComments(concernId) {
+    const commentsDiv = document.getElementById('comments-' + concernId);
+    if (commentsDiv.style.display === 'none' || commentsDiv.style.display === '') {
+        commentsDiv.style.display = 'block';
+    } else {
+        commentsDiv.style.display = 'none';
+    }
+}
+
+// Vote on concern with backend integration and per-user restriction
+function vote(concernId, type) {
+    const button = document.getElementById(type + 'vote-' + concernId);
+    const countSpan = button.querySelector('.fw-bold');
+    
+    // Send vote to backend
+    fetch('/vote', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            concern_id: concernId,
+            vote_type: type
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update vote counts
+            const upButton = document.getElementById('upvote-' + concernId);
+            const downButton = document.getElementById('downvote-' + concernId);
+            const upCount = upButton.querySelector('.fw-bold');
+            const downCount = downButton.querySelector('.fw-bold');
+            
+            upCount.textContent = data.upvotes;
+            downCount.textContent = data.downvotes;
+            
+            // Visual feedback based on action
+            if (data.action === 'added') {
+                button.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => {
+                    button.classList.remove('animate__animated', 'animate__pulse');
+                }, 600);
+            } else if (data.action === 'removed') {
+                button.classList.add('animate__animated', 'animate__flash');
+                setTimeout(() => {
+                    button.classList.remove('animate__animated', 'animate__flash');
+                }, 600);
+            } else if (data.action === 'changed') {
+                // Flash both buttons to show vote change
+                upButton.classList.add('animate__animated', 'animate__flash');
+                downButton.classList.add('animate__animated', 'animate__flash');
+                setTimeout(() => {
+                    upButton.classList.remove('animate__animated', 'animate__flash');
+                    downButton.classList.remove('animate__animated', 'animate__flash');
+                }, 600);
+            }
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error voting:', error);
+        alert('Failed to submit vote. Please try again.');
+    });
+}
+
+// Add comment with backend integration
+function addComment(concernId) {
+    const input = document.getElementById('comment-input-' + concernId);
+    const comment = input.value.trim();
+    
+    if (!comment) {
+        alert('Please enter a comment.');
+        return;
+    }
+    
+    // Send comment to backend
+    fetch('/add_comment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            concern_id: concernId,
+            comment: comment
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Create comment element
+            const commentElement = `
+                <div class="mb-3 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <strong class="text-primary">${data.comment.user}</strong>
+                        <small class="text-muted">Just now</small>
+                    </div>
+                    <p class="mb-0 mt-1">${data.comment.text}</p>
+                </div>
+            `;
+            
+            // Add to comments list
+            const commentsList = document.getElementById('comments-list-' + concernId);
+            
+            // Remove "no comments" message if it exists
+            if (commentsList.innerHTML.includes('Be the first to comment')) {
+                commentsList.innerHTML = '';
+            }
+            
+            commentsList.innerHTML = commentElement + commentsList.innerHTML;
+            
+            // Update comment count
+            const commentsButton = document.querySelector(`button[onclick="toggleComments(${concernId})"] .fw-bold`);
+            if (commentsButton) {
+                let count = parseInt(commentsButton.textContent);
+                commentsButton.textContent = count + 1;
+            }
+            
+            input.value = '';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding comment:', error);
+        alert('Failed to add comment. Please try again.');
+    });
+}
+</script>
+{% endblock %}

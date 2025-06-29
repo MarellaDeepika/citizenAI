@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}CitizenAI - Home{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="display-4 text-white mb-3">🤖 Ask Citizen AI</h1>
+                <p class="lead text-white-50">Your intelligent assistant for civic engagement and government services</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <textarea class="form-control" id="userInput" rows="4" placeholder="Ask about government services, policies, or civic matters..."></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-lg px-5" onclick="sendMessage()">Send Message</button>
+                    </div>
+                    
+                    <!-- Response Section -->
+                    <div id="responseSection" class="mt-4" style="display: none;">
+                        <div class="border-top pt-4">
+                            <h5 class="text-primary">AI Response:</h5>
+                            <div id="reply" class="mb-3 p-3 bg-light rounded"></div>
+                            <div>
+                                <small class="text-muted">Sentiment: </small>
+                                <span id="sentiment" class="badge"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendMessage() {
+    const userInput = document.getElementById('userInput').value;
+    if (!userInput.trim()) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    const responseSection = document.getElementById('responseSection');
+    const replyElement = document.getElementById('reply');
+    const sentimentElement = document.getElementById('sentiment');
+    
+    // Show loading
+    responseSection.style.display = 'block';
+    replyElement.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Processing your request...';
+    sentimentElement.textContent = '';
+    sentimentElement.className = 'badge';
+    
+    try {
+        const formData = new FormData();
+        formData.append('message', userInput);
+        
+        const response = await fetch('/chat', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Use innerHTML to properly render HTML content from AI
+            replyElement.innerHTML = data.reply;
+            
+            // Set sentiment with appropriate styling
+            sentimentElement.textContent = data.sentiment.charAt(0).toUpperCase() + data.sentiment.slice(1);
+            switch(data.sentiment) {
+                case 'positive':
+                    sentimentElement.className = 'badge bg-success';
+                    break;
+                case 'negative':
+                    sentimentElement.className = 'badge bg-danger';
+                    break;
+                default:
+                    sentimentElement.className = 'badge bg-secondary';
+            }
+        } else if (response.status === 503) {
+            // Handle AI service unavailable error
+            const data = await response.json();
+            replyElement.innerHTML = `<div class="alert alert-warning mb-0">${data.error}</div>`;
+            sentimentElement.textContent = '';
+        } else {
+            // Handle other errors
+            replyElement.innerHTML = '<div class="alert alert-danger mb-0">Sorry, there was an error processing your request. Please try again.</div>';
+            sentimentElement.textContent = '';
+        }
+        
+    } catch (error) {
+        replyElement.innerHTML = '<div class="alert alert-danger mb-0">Sorry, there was a connection error. Please try again.</div>';
+        sentimentElement.textContent = '';
+        console.error('Error:', error);
+    }
+}
+
+// Allow Enter key to send message (Ctrl+Enter for new line)
+document.getElementById('userInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.ctrlKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+#reply {
+    line-height: 1.6;
+}
+
+#reply h2, #reply h3 {
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+#reply h2:first-child, #reply h3:first-child {
+    margin-top: 0;
+}
+
+#reply ul, #reply ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#reply strong {
+    color: #2c3e50;
+}
+
+#reply p {
+    margin-bottom: 0.8rem;
+}
+</style>
+{% endblock %}

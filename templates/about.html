@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}About - CitizenAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>About Citizen AI</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Citizen AI is an intelligent platform designed to bridge the gap between citizens and government services through artificial intelligence.</p>
+                    
+                    <p>Our mission is to make government interactions more accessible, efficient, and transparent by providing citizens with an AI-powered assistant that can help with questions, concerns, and civic engagement.</p>
+                    
+                    <h4 class="mt-4">In Simple Terms:</h4>
+                    <ul>
+                        <li><strong>Ask Questions:</strong> Get instant answers about government services, policies, and procedures</li>
+                        <li><strong>Report Issues:</strong> Easily report concerns and problems in your community</li>
+                        <li><strong>Get Help:</strong> Navigate complex government processes with AI assistance</li>
+                        <li><strong>Stay Informed:</strong> Access up-to-date information about civic matters</li>
+                    </ul>
+                    
+                    <h4 class="mt-4">Key Features:</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 mb-3">
+                                <h6>🤖 Chat Assistant</h6>
+                                <p class="mb-0 small">AI-powered responses to your questions and concerns</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 mb-3">
+                                <h6>📊 Sentiment Analysis</h6>
+                                <p class="mb-0 small">Understanding citizen feedback and emotions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 mb-3">
+                                <h6>� Concern Reporting</h6>
+                                <p class="mb-0 small">Easy way to report issues and track progress</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 mb-3">
+                                <h6>🧠 IBM Granite Models</h6>
+                                <p class="mb-0 small">Powered by advanced AI technology</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mt-4">Why It's Useful:</h4>
+                    <ul>
+                        <li><strong>Transparency:</strong> Makes government services more open and accessible</li>
+                        <li><strong>Efficiency:</strong> Faster responses to citizen inquiries</li>
+                        <li><strong>Engagement:</strong> Improves civic participation and involvement</li>
+                        <li><strong>Trust:</strong> Builds better relationships between citizens and government</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

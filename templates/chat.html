@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - CitizenAI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Citizen Chat Assistant</h2>
+                    <p class="mb-0 text-muted">Ask questions, report issues, or get information about government services</p>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4>Ask the Assistant</h4>
+                        <form id="chatForm">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="questionInput" rows="4" placeholder="Type your question here..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Response Section -->
+                    <div id="responseSection" class="mt-4" style="display: none;">
+                        <div class="alert alert-info">
+                            <h5>AI Response:</h5>
+                            <p id="aiResponse"></p>
+                            <div class="mt-3">
+                                <strong>Sentiment Analysis:</strong>
+                                <span id="sentimentResult" class="badge ms-2"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('home') }}" class="btn btn-outline-secondary">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('chatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const questionInput = document.getElementById('questionInput');
+    const responseSection = document.getElementById('responseSection');
+    const aiResponse = document.getElementById('aiResponse');
+    const sentimentResult = document.getElementById('sentimentResult');
+    
+    const question = questionInput.value.trim();
+    
+    if (!question) {
+        alert('Please fill out this field');
+        return;
+    }
+    
+    // Show loading
+    responseSection.style.display = 'block';
+    aiResponse.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Processing your question...';
+    sentimentResult.textContent = '';
+    
+    try {
+        const formData = new FormData();
+        formData.append('message', question);
+        
+        const response = await fetch('/chat', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            aiResponse.textContent = data.reply;
+            
+            // Set sentiment with appropriate styling
+            sentimentResult.textContent = data.sentiment.charAt(0).toUpperCase() + data.sentiment.slice(1);
+            switch(data.sentiment) {
+                case 'positive':
+                    sentimentResult.className = 'badge bg-success ms-2';
+                    break;
+                case 'negative':
+                    sentimentResult.className = 'badge bg-danger ms-2';
+                    break;
+                default:
+                    sentimentResult.className = 'badge bg-secondary ms-2';
+            }
+        } else {
+            aiResponse.textContent = 'Sorry, there was an error processing your request. Please try again.';
+            sentimentResult.textContent = '';
+        }
+        
+    } catch (error) {
+        aiResponse.textContent = 'Sorry, there was a connection error. Please try again.';
+        sentimentResult.textContent = '';
+        console.error('Error:', error);
+    }
+});
+</script>
+{% endblock %}
