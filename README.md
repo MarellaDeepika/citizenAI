@@ -58,28 +58,28 @@ citizen_ai/
    
      " import secrets
       print(secrets.token_hex(16)) "
-AI Assistant (Claude 3.5 Sonnet via OpenRouter)
-The assistant is configured to respond to queries like:
+ 5.AI Assistant (Claude 3.5 Sonnet via OpenRouter)
+   The assistant is configured to respond to queries like:
+   
+   “How do I register to vote in Norway?”
+   “What is the process for reporting potholes in my city?”
 
-“How do I register to vote in Norway?”
-“What is the process for reporting potholes in my city?”
-
-It sends your query securely to OpenRouter’s Claude 3.5 Sonnet and returns structured, helpful info.
-
-Concern Reporting
--Submit issues (e.g., garbage, streetlight, road)
-
--Stored in memory (extendable to SQLite/PostgreSQL)
-
--Accessible via admin dashboard
- 
-Sentiment Analysis
- Uses openrouter sentiment classifier to show:
-    Positive, Negative, Neutral tone
-
-Useful for understanding public emotions
-
-💻 Running the App
-
-  "python app.py"
+  It sends your query securely to OpenRouter’s Claude 3.5 Sonnet and returns structured, helpful info.
   
+ 6. Concern Reporting
+  -Submit issues (e.g., garbage, streetlight, road)
+  
+  -Stored in memory (extendable to SQLite/PostgreSQL)
+  
+  -Accessible via admin dashboard
+   
+ 7. Sentiment Analysis
+   Uses openrouter sentiment classifier to show:
+      Positive, Negative, Neutral tone
+  
+  Useful for understanding public emotions
+  
+  8.💻 Running the App
+  
+   python app.py
+    
