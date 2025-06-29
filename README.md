@@ -1,4 +1,4 @@
-# 🇮🇳 CitizenAI 🏛️
+ CitizenAI 🏛️
 
 **CitizenAI** is a powerful AI-powered civic engagement platform designed to help users understand and interact with government services in real-time. Built with Flask and integrated with OpenRouter’s Claude 3.5 Sonnet, this platform provides intelligent, structured responses to queries on topics like voting, infrastructure, public safety, and more.
 
