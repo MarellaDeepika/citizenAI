@@ -82,4 +82,16 @@ citizen_ai/
   8.💻 Running the App
   
    python app.py
-    
+   
+   
+   
+   
+ SCREEN RECORDING OF THE WEBSITE:
+
+
+  https://github.com/user-attachments/assets/d3475645-76b1-43dd-80bd-d3c004939ae5
+
+
+   
+ 
+ 
